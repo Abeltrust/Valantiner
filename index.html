@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Happy Valentine 💖</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<!-- Bootstrap CDN -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Allura&display=swap" rel="stylesheet">
+
+<style>
+/* =====================
+   GLOBAL
+===================== */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background: #7b0f1b; /* FULL RED */
+  font-family: "Playfair Display", serif;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* =====================
+   MAIN CARD
+===================== */
+.card-box {
+  background: rgba(255, 235, 235, 0.95);
+  padding: 6vh 5vw;
+  border-radius: 28px;
+  max-width: 560px;
+  width: 92%;
+  text-align: center;
+  box-shadow: 0 40px 120px rgba(0,0,0,.35);
+  z-index: 5;
+}
+
+/* =====================
+   TEXT
+===================== */
+h1 {
+  font-family: "Allura", cursive;
+  font-size: clamp(2.4rem, 6vw, 3.2rem);
+  color: #7b0f1b;
+  margin-bottom: 1rem;
+}
+
+p {
+  font-size: clamp(1rem, 3.5vw, 1.15rem);
+  line-height: 1.9;
+  color: #5a0c18;
+  margin-bottom: 1.2rem;
+}
+
+/* =====================
+   TEXT ANIMATIONS
+===================== */
+@keyframes fromLeft { from {transform:translateX(-40px);opacity:0;} to {transform:none;opacity:1;} }
+@keyframes fromRight{ from {transform:translateX(40px);opacity:0;} to {transform:none;opacity:1;} }
+@keyframes fromTop  { from {transform:translateY(-40px);opacity:0;} to {transform:none;opacity:1;} }
+@keyframes fromBottom{from {transform:translateY(40px);opacity:0;} to {transform:none;opacity:1;} }
+
+.float-text {
+  animation-duration: 3.4s;
+  animation-timing-function: ease-out;
+}
+
+.wander {
+  animation: wander 10s ease-in-out infinite alternate;
+}
+
+@keyframes wander {
+  from { transform: translate(0,0); }
+  to   { transform: translate(6px,-6px); }
+}
+
+/* =====================
+   BUTTONS
+===================== */
+.buttons {
+  margin-top: 4vh;
+  position: relative;
+  height: 140px;
+  display: flex;
+  gap: 2px;
+}
+
+#yesBtn {
+  padding: 14px 34px;
+  border-radius: 30px;
+  border: none;
+  background: #7b0f1b;
+  color: #fff;
+  font-size: 16px;
+  z-index: 3;
+}
+
+#noBtn {
+  position: absolute;
+  left: 55%;
+  top: 0;
+  padding: 14px 34px;
+  border-radius: 30px;
+  border: 1px solid #aaa;
+  background: transparent;
+  color: #444;
+  pointer-events: auto;
+  transition: transform .25s ease;
+}
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.05); }
+  40% { transform: scale(1); }
+}
+
+#yesBtn {
+  animation: heartbeat 2.5s infinite;
+}
+/* =====================
+   FLOATING EMOJIS
+===================== */
+.float-emoji {
+  position: fixed;
+  z-index: 1;
+  opacity: .85;
+  pointer-events: none;
+  transition: transform 7s linear, opacity 7s linear;
+}
+.love-bear {
+  position: fixed;
+  z-index: 2;
+  width: clamp(80px, 18vw, 140px);
+  pointer-events: none;
+  animation: bearPop 4.5s ease-out forwards;
+}
+
+@keyframes bearPop {
+  0% {
+    transform: scale(0.6) translateY(40px);
+    opacity: 0;
+  }
+  20% {
+    transform: scale(1.05) translateY(0);
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.9) translateY(-40px);
+    opacity: 0;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="card-box" id="app"> working on it</div>
+<script>
+  const BEARS = [
+    "./bear1.gif",
+    "./bear2.gif"
+  ];
+  </script>
+<script>
+/* =====================
+   AUDIO (SAFE CDN)
+===================== */
+const music = new Audio( "./love.mp3");
+music.loop = true;
+music.volume = 0.7;
+
+const yesMusic = new Audio("./yes-love.mp3");
+yesMusic.loop = true;
+yesMusic.volume = 0.8;
+
+function fadeIn(audio, duration = 1200) {
+  audio.volume = 0;
+  audio.play().catch(() => {});
+  const step = 1 / (duration / 50);
+  const fade = setInterval(() => {
+    if (audio.volume < 1 - step) {
+      audio.volume += step;
+    } else {
+      audio.volume = 1;
+      clearInterval(fade);
+    }
+  }, 50);
+}
+
+function fadeOut(audio, duration = 1200) {
+  const step = audio.volume / (duration / 50);
+  const fade = setInterval(() => {
+    if (audio.volume > step) {
+      audio.volume -= step;
+    } else {
+      audio.volume = 0;
+      audio.pause();
+      audio.currentTime = 0;
+      clearInterval(fade);
+    }
+  }, 50);
+}
+
+/* =====================
+   STATE
+===================== */
+let stage = 0;
+let messageIndex = 0;
+let noClicks = 0;
+
+const app = document.getElementById("app");
+
+/* =====================
+   CONTENT (POEMS)
+===================== */
+const POEMS = [
+`Hey… 💕
+How has your heart been today?
+Not the busy part — the quiet part.
+I hope it’s been treated gently,
+because gentleness deserves gentleness.`,
+
+`💕
+Sometimes love isn’t fireworks.
+Sometimes it’s checking in.
+Sometimes it’s staying.
+Sometimes it’s choosing softness
+when the world feels loud.`,
+
+` 🌸 
+There’s something beautiful
+about being seen without performing,
+about being chosen without pressure,
+about moments that don’t rush,
+but arrive right on time.`,
+
+`💖
+This isn’t a big dramatic thing.
+It’s just a small, honest question,
+wrapped in care,
+with no expectations —
+only sincerity.`,
+
+`🌹
+This isn’t a big dramatic thing.
+It’s just a small, honest question,
+wrapped in care,
+with no expectations —
+only sincerity.`,
+
+`🥺
+So here I am,
+asking with a calm heart
+and a hopeful smile…`
+];
+
+const NO_PHRASES = [
+  "No 💔",
+  "Are you sure? 🥺",
+  "We’d be kind to each other 💕",
+  "One more thought?",
+  "Don’t leave love waiting",
+  "Maybe… just maybe?"
+];
+
+/* =====================
+   HELPERS
+===================== */
+function randomAnim() {
+  return ["fromLeft","fromRight","fromTop","fromBottom"]
+    [Math.floor(Math.random()*4)];
+}
+
+/* =====================
+   RENDER
+===================== */
+
+function render() {
+  // s
+  if (stage === 0) intro();
+  else if (stage === 1) poem();
+  else if (stage === 2) question();
+  else success();
+}
+window.addEventListener("DOMContentLoaded", () => {
+  render();
+  startEmojis();
+});
+/* =====================
+   STAGES
+===================== */
+function intro() {
+  app.innerHTML = `
+    <p class="float-text wander" style="animation-name:${randomAnim()}">
+      🌸 Take a deep breath. This is just for you.
+    </p>
+    <button id="yesBtn" class="mt-4">Begin</button>
+  `;
+  document.getElementById("yesBtn").onclick = () => {
+    music.play();
+    startEmojis();
+    stage = 1;
+    render();
+  };
+}
+
+function poem() {
+  app.innerHTML = `
+    <p class="float-text wander" style="animation-name:${randomAnim()}">
+      ${POEMS[messageIndex].replace(/\n/g,"<br>")}
+    </p>
+    <button id="yesBtn" class="mt-4">Continue</button>
+  `;
+  document.getElementById("yesBtn").onclick = () => {
+    messageIndex++;
+    if (messageIndex >= POEMS.length) stage = 2;
+    render();
+    startEmojis();
+  };
+}
+
+function question() {
+  const yesSize = 16 + noClicks * 4;
+  app.innerHTML = `
+    <h3 class="float-text" style="animation-name:${randomAnim()}; color:#7b0f1b;">
+      Will you be my Valentine? 💖
+    </h3>
+
+    <div class="buttons">
+      <button id="yesBtn" style="font-size:${yesSize}px">Yes 💕</button>
+      <button id="noBtn">${NO_PHRASES[Math.min(noClicks, NO_PHRASES.length - 1)]}</button>
+    </div>
+  `;
+
+  document.getElementById("yesBtn").onclick = () => {
+    stage = 3;
+    fadeIn(music);
+    render();
+  };
+
+  const area = document.querySelector(".buttons");
+  const noBtn = document.getElementById("noBtn");
+
+  function moveAway(x, y) {
+    const r = area.getBoundingClientRect();
+    noBtn.style.transform =
+      `translate(${-(x - r.width/2) * 0.3}px, ${-(y - r.height/2) * 0.3}px)`;
+  }
+
+  area.onmousemove = (e) => moveAway(e.clientX, e.clientY);
+
+  area.ontouchmove = (e) => {
+    const t = e.touches[0];
+    moveAway(t.clientX, t.clientY);
+  };
+
+  noBtn.onclick = () => {
+    noClicks++;
+    render();
+  };
+}
+
+function success() {
+  document.body.style.boxShadow =
+    "inset 0 0 120px rgba(255,180,190,.35)";
+
+  app.innerHTML = `
+    <h1 class="float-text" style="animation-name:${randomAnim()}">
+      Happy Valtines Day 💖
+    </h1>
+    <p class="float-text wander">
+      Thank you for choosing with your heart.
+    </p>
+    <a href="https://wa.me/?text=${encodeURIComponent(
+      "💖 Hi Dear I want to share this valantine  moment with you 💕 " + location.href
+    )}">
+      <button id="yesBtn" class="mt-4">Share on WhatsApp 💬</button>
+    </a>
+  `;
+
+  startEmojis();     // hearts & flowers
+  startLoveBears(); // 
+}
+
+/* =====================
+   EMOJIS 
+===================== */
+let emojisStarted = false;
+
+let emojiInterval = null;
+
+function startEmojis() {
+  if (emojiInterval) return; // prevent duplicates
+
+  const icons = ["💖","🌸","💐","❤️","🌹"];
+
+  emojiInterval = setInterval(() => {
+    const e = document.createElement("div");
+    e.className = "float-emoji";
+    e.textContent = icons[Math.floor(Math.random() * icons.length)];
+    e.style.left = Math.random() * 100 + "vw";
+    e.style.top = "110vh";
+    e.style.fontSize = 18 + Math.random() * 22 + "px";
+
+    document.body.appendChild(e);
+
+    requestAnimationFrame(() => {
+      e.style.transform =
+        `translate(${(Math.random()-0.5)*180}px,-120vh)`;
+      e.style.opacity = 0;
+    });
+
+    setTimeout(() => e.remove(), 7000);
+  }, 350);
+}
+function spawnLoveBear() {
+  const img = document.createElement("img");
+  img.className = "love-bear";
+  img.src = BEARS[Math.floor(Math.random() * BEARS.length)];
+
+  // Random position (safe margins)
+  img.style.left = Math.random() * 70 + 10 + "vw";
+  img.style.top  = Math.random() * 60 + 15 + "vh";
+
+  document.body.appendChild(img);
+
+  setTimeout(() => img.remove(), 4500);
+}
+let bearInterval = null;
+
+function startLoveBears() {
+  if (bearInterval) return;
+
+  spawnLoveBear(); // first one immediately
+
+  bearInterval = setInterval(() => {
+    spawnLoveBear();
+  }, 2200); // every ~2 seconds feels sweet
+}
+
+function stopLoveBears() {
+  clearInterval(bearInterval);
+  bearInterval = null;
+}
+function stopEmojis() {
+  clearInterval(emojiInterval);
+  emojiInterval = null;
+}
+// Emojis start on page load
+window.addEventListener("DOMContentLoaded", startEmojis);
+</script>
+
+<script>
+
+
+  // Mobile wake-up fix
+  function wakeEmojisOnce() {
+    startEmojis();
+    document.removeEventListener("touchstart", wakeEmojisOnce);
+    document.removeEventListener("click", wakeEmojisOnce);
+  }
+
+  document.addEventListener("touchstart", wakeEmojisOnce, { passive: true });
+  document.addEventListener("click", wakeEmojisOnce);
+</script>
+</body>
+</html>
